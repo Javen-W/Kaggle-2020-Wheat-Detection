@@ -3,13 +3,14 @@ import pandas as pd
 import cv2
 import os
 import ast
-from torchvision.transforms import Compose
 from albumentations import HorizontalFlip, VerticalFlip, ToGray, OneOf, GaussNoise, MotionBlur, MedianBlur, Blur, CLAHE, \
-    RandomBrightnessContrast, Sharpen, Emboss, HueSaturationValue
+    RandomBrightnessContrast, Sharpen, Emboss, HueSaturationValue, BboxParams, Compose
 from torch.utils.data import Dataset
 
+def compose_aug(aug):
+    return Compose(aug, bbox_params=BboxParams(format='pascal_voc', min_area=0, min_visibility=0, label_fields=['labels']))
 
-class WheatTrainDataset(Dataset):
+class WheatDataset(Dataset):
     def __init__(self, mode='train'):
         # Load train.csv
         self.df = pd.read_csv('dataset/train.csv')
@@ -25,7 +26,7 @@ class WheatTrainDataset(Dataset):
         self.image_dir = 'dataset/train' if mode == 'train' else 'dataset/test'
 
         # Init training transforms
-        self.train_transforms = Compose([
+        self.train_transforms = compose_aug([
             HorizontalFlip(p=0.5),
             VerticalFlip(p=0.5),
             ToGray(p=0.01),
@@ -64,6 +65,7 @@ class WheatTrainDataset(Dataset):
 
         # Apply transforms
         if self.train_transforms:
-            image = self.train_transforms(image)
+            annotated = {'image': image, 'labels': labels, 'boxes': boxes}
+            image = self.train_transforms(**annotated)['image']
 
         return image, target
