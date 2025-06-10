@@ -2,3 +2,4 @@ dataset/test/
 dataset/train/
 models/yolov7src/__pycache__/
 */__pycache__/
+models/*.pt
