@@ -1,3 +1,4 @@
 dataset/test/
 dataset/train/
-models/yolov7
+models/yolov7src/__pycache__/
+*/__pycache__/
