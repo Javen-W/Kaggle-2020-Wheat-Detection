@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import pandas as pd
 import cv2
@@ -67,5 +68,9 @@ class WheatDataset(Dataset):
         if self.train_transforms:
             annotated = {'image': image, 'labels': labels, 'boxes': boxes}
             image = self.train_transforms(**annotated)['image']
+
+        # Convert image to tensor
+        image = image.astype(np.float32) / 255.0
+        image = torch.from_numpy(image).permute(2, 0, 1)  # Use permute instead of moveaxis
 
         return image, target
