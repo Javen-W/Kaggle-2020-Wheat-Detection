@@ -39,22 +39,49 @@ model.to(device)
 # Optimizer
 optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=0.0005)
 
-# Train model
+# Training loop
 for epoch in range(n_epochs):
+    # Train
     model.train()
+    train_loss = 0.0
     for batch in tqdm(train_loader, leave=False, desc=f"Train epoch {epoch+1}/{n_epochs}"):
         # Extract batch items
         images, targets = batch
         images = [image.to(device) for image in images]
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-        
+
         # Forward-feed and back-propagate
         loss_dict = model(images, targets) # Returns losses
         losses = sum(loss for loss in loss_dict.values())
         optimizer.zero_grad()
         losses.backward()
         optimizer.step()
-    print(f"Epoch {epoch+1}, Loss: {losses.item()}")
+        train_loss += losses.item()
+    print(f"Epoch {epoch+1}/{n_epochs}, Train Loss: {train_loss / len(train_loader):.4f}")
+
+    # Validate
+    model.eval()
+    metric = MeanAveragePrecision(iou_thresholds=[0.5 + i * 0.05 for i in range(6)])  # 0.5 to 0.75
+    with torch.no_grad():
+        for batch in tqdm(val_loader, leave=False, desc=f"Val epoch {epoch + 1}/{n_epochs}"):
+            # Extract batch items
+            images, targets = batch
+            images = [image.to(device) for image in images]
+            targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+
+            # Evaluate
+            outputs = model(images)
+            preds = [
+                {
+                    'boxes': output['boxes'].cpu(),
+                    'scores': output['scores'].cpu(),
+                    'labels': output['labels'].cpu(),
+                } for output in outputs
+            ]
+            metric.update(preds, targets)
+    mAP = metric.compute()['map'].item()
+    print(f"Epoch {epoch + 1}/{n_epochs}, Val: {mAP:.4f}")
+
 
 # Save model
 torch.save(model.state_dict(), model_weights)
