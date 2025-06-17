@@ -1,0 +1,31 @@
+Val epoch 1/10:   0%|          | 0/85 [00:00<?, ?it/s]
+Epoch 1/10, Train Loss: 1.1125
+Train epoch 2/10:   0%|          | 0/338 [00:00<?, ?it/s]Epoch 1/10, Val: 0.5498
+Val epoch 2/10:   0%|          | 0/85 [00:00<?, ?it/s]
+Epoch 2/10, Train Loss: 0.9904
+Train epoch 3/10:   0%|          | 0/338 [00:00<?, ?it/s]Epoch 2/10, Val: 0.5535
+Val epoch 3/10:   0%|          | 0/85 [00:00<?, ?it/s]
+Epoch 3/10, Train Loss: 0.9616
+Train epoch 4/10:   0%|          | 0/338 [00:00<?, ?it/s]Epoch 3/10, Val: 0.5518
+Val epoch 4/10:   0%|          | 0/85 [00:00<?, ?it/s]
+Epoch 4/10, Train Loss: 0.9492
+Train epoch 5/10:   0%|          | 0/338 [00:00<?, ?it/s]Epoch 4/10, Val: 0.5930
+Val epoch 5/10:   0%|          | 0/85 [00:00<?, ?it/s]
+Epoch 5/10, Train Loss: 0.9335
+Train epoch 6/10:   0%|          | 0/338 [00:00<?, ?it/s]Epoch 5/10, Val: 0.6013
+Val epoch 6/10:   0%|          | 0/85 [00:00<?, ?it/s]
+Epoch 6/10, Train Loss: 0.9176
+Train epoch 7/10:   0%|          | 0/338 [00:00<?, ?it/s]Epoch 6/10, Val: 0.5907
+Val epoch 7/10:   0%|          | 0/85 [00:00<?, ?it/s]
+Epoch 7/10, Train Loss: 0.9218
+Train epoch 8/10:   0%|          | 0/338 [00:00<?, ?it/s]Epoch 7/10, Val: 0.6143
+Val epoch 8/10:   0%|          | 0/85 [00:00<?, ?it/s]
+Epoch 8/10, Train Loss: 0.9094
+Train epoch 9/10:   0%|          | 0/338 [00:00<?, ?it/s]Epoch 8/10, Val: 0.6213
+Val epoch 9/10:   0%|          | 0/85 [00:00<?, ?it/s]
+Epoch 9/10, Train Loss: 0.9024
+Train epoch 10/10:   0%|          | 0/338 [00:00<?, ?it/s]Epoch 9/10, Val: 0.6138
+Val epoch 10/10:   0%|          | 0/85 [00:00<?, ?it/s]
+Epoch 10/10, Train Loss: 0.9026
+Epoch 10/10, Val: 0.6224
+Submission saved to output/submission.csv, len=10
