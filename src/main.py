@@ -13,12 +13,12 @@ import matplotlib.patches as patches
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(777)
-train_model = False
+train_model = True
 
 # Hyperparameters
 batch_size = 8
 n_workers = 4
-n_epochs = 1
+n_epochs = 10
 lr = 0.005
 
 def collate_fn(x):
@@ -119,7 +119,7 @@ def train_and_validate():
                 ]
                 metric.update(preds, targets)
         mAP = metric.compute()['map'].item()
-        print(f"Epoch {epoch + 1}/{n_epochs}, Val: {mAP:.4f}")
+        print(f"\nEpoch {epoch + 1}/{n_epochs}, Val: {mAP:.4f}")
 
 # Train & Save model
 if train_model:
