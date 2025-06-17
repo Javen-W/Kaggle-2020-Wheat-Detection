@@ -77,7 +77,7 @@ class WheatDataset(Dataset):
             # Get bounding boxes and labels for this image
             records = self.df[self.df['image_id'] == image_id]
             boxes = records[['x_min', 'y_min', 'x_max', 'y_max']].values
-            labels = torch.ones((len(boxes),), dtype=torch.int64)  # Single class (wheat)
+            labels = np.ones(len(boxes), dtype=np.int64)  # Single class (wheat) as NumPy array
 
             # Convert to tensors
             boxes = torch.as_tensor(boxes, dtype=torch.float32)
