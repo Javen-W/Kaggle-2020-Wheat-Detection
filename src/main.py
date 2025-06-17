@@ -8,7 +8,7 @@ from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_Res
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -33,6 +33,28 @@ def format_prediction_string(boxes, scores):
         height = y_max - y_min
         pred_strings.append(f"{score:.4f} {x_min:.2f} {y_min:.2f} {width:.2f} {height:.2f}")
     return " ".join(pred_strings) if pred_strings else ""
+
+def visualize_predictions(image, boxes, scores, image_id, output_dir="output/visual/", threshold=0.5):
+    os.makedirs(output_dir, exist_ok=True)
+    # Create figure and axes
+    fig, ax = plt.subplots(1)
+    # Convert image from tensor [C, H, W] to [H, W, C] and scale to [0, 255]
+    image = image.permute(1, 2, 0).cpu().numpy() * 255.0
+    ax.imshow(image.astype(np.uint8))
+    # Add bounding boxes
+    for box, score in zip(boxes, scores):
+        if score > threshold:
+            x_min, y_min, x_max, y_max = box
+            rect = patches.Rectangle(
+                (x_min, y_min), x_max - x_min, y_max - y_min,
+                linewidth=1, edgecolor='r', facecolor='none'
+            )
+            ax.add_patch(rect)
+            ax.text(x_min, y_min, f'{score:.2f}', color='white', fontsize=8, backgroundcolor='red')
+    # Save the plot
+    output_path = os.path.join(output_dir, f"{image_id}.jpg")
+    plt.savefig(output_path, bbox_inches='tight', dpi=300)
+    plt.close(fig)  # Close the figure to free memory
 
 # Load datasets
 train_dataset = WheatDataset(mode='train')
@@ -105,7 +127,7 @@ if train_model:
     torch.save(model.state_dict(), model_weights)
 
 # Inference step for test dataset
-def predict_test(output_file="output/submission.csv"):
+def predict_test(output_file="output/submission.csv", visualize=False, threshold=0.5):
     model.eval()
     predictions = []
     with torch.no_grad():
@@ -120,35 +142,25 @@ def predict_test(output_file="output/submission.csv"):
                 boxes = output['boxes'].cpu().numpy()
                 scores = output['scores'].cpu().numpy()
                 # Filter
-                mask = scores > 0.5
+                mask = scores > threshold
                 boxes = boxes[mask]
                 scores = scores[mask]
                 pred_str = format_prediction_string(boxes, scores)
                 predictions.append({'image_id': image_id, 'PredictionString': pred_str})
+                if visualize:
+                    visualize_predictions(images[0], boxes, scores, image_id, threshold=threshold)
 
     # Save predictions
     submission_df = pandas.DataFrame(data=predictions)
     submission_df.to_csv(output_file, index=False)
     print(f"Submission saved to {output_file}, len={len(submission_df)}")
 
-def visualize_predictions(image, boxes, scores, threshold=0.5):
-    fig, ax = plt.subplots(1)
-    image = image.permute(1, 2, 0).numpy() * 255.0
-    ax.imshow(image.astype(np.uint8))
-    for box, score in zip(boxes, scores):
-        if score > threshold:
-            x_min, y_min, x_max, y_max = box
-            rect = patches.Rectangle((x_min, y_min), x_max - x_min, y_max - y_min, linewidth=1, edgecolor='r', facecolor='none')
-            ax.add_patch(rect)
-            ax.text(x_min, y_min, f'{score:.2f}', color='white', fontsize=8, backgroundcolor='red')
-    plt.show()
-
 # Load fine-tuned weights if they exist
 if os.path.exists(model_weights):
     model.load_state_dict(torch.load(model_weights, weights_only=True))
 
 # Predict test dataset
-predict_test(output_file="output/submission.csv")  # output_file="/kaggle/working/submission.csv"
+predict_test(output_file="output/submission.csv", threshold=0.5, visualize=True)  # output_file="/kaggle/working/submission.csv"
 
 
 
