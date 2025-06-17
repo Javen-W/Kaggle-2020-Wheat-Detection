@@ -1,3 +1,4 @@
+import pandas
 import torch
 import os
 from torch.utils.data import DataLoader
@@ -12,11 +13,21 @@ torch.manual_seed(777)
 # Hyperparameters
 batch_size = 8
 n_workers = 4
-n_epochs = 10
+n_epochs = 1
 lr = 0.005
 
 def collate_fn(x):
     return tuple(zip(*x))
+
+def format_prediction_string(boxes, scores):
+    """Format predictions as 'score x_min y_min width height'."""
+    pred_strings = []
+    for box, score in zip(boxes, scores):
+        x_min, y_min, x_max, y_max = box
+        width = x_max - x_min
+        height = y_max - y_min
+        pred_strings.append(f"{score:.4f} {x_min:.2f} {y_min:.2f} {width:.2f} {height:.2f}")
+    return " ".join(pred_strings) if pred_strings else ""
 
 # Load datasets
 train_dataset = WheatDataset(mode='train')
@@ -24,6 +35,9 @@ train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, nu
 
 val_dataset = WheatDataset(mode='val')
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=n_workers, collate_fn=collate_fn)
+
+test_dataset = WheatDataset(mode='test')
+test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=n_workers, collate_fn=collate_fn)
 
 # Load model
 model_weights = "models/fasterrcnn_resnet50_fpn_COCO-V1.pt"
@@ -49,7 +63,6 @@ for epoch in range(n_epochs):
         images, targets = batch
         images = [image.to(device) for image in images]
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-
         # Forward-feed and back-propagate
         loss_dict = model(images, targets) # Returns losses
         losses = sum(loss for loss in loss_dict.values())
@@ -68,7 +81,6 @@ for epoch in range(n_epochs):
             images, targets = batch
             images = [image.to(device) for image in images]
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-
             # Evaluate
             outputs = model(images)
             preds = [
@@ -82,6 +94,37 @@ for epoch in range(n_epochs):
     mAP = metric.compute()['map'].item()
     print(f"Epoch {epoch + 1}/{n_epochs}, Val: {mAP:.4f}")
 
-
 # Save model
 torch.save(model.state_dict(), model_weights)
+
+# Inference step for test dataset
+def test_predict(model, test_loader, output_file="submission.csv"):
+    model.eval()
+    predictions = []
+    with torch.no_grad():
+        for batch in test_loader:
+            # Extract batch items
+            images, targets = batch
+            images = [image.to(device) for image in images]
+            # Predict
+            outputs = model(images)
+            for output, target in zip(outputs, targets):
+                image_id = test_dataset.image_ids[target['image_id'].item()]
+                boxes = output['boxes'].cpu().numpy()
+                scores = output['scores'].cpu().numpy()
+                # Filter
+                mask = scores > 0.5
+                boxes = boxes[mask]
+                scores = scores[mask]
+                pred_str = format_prediction_string(boxes, scores)
+                predictions.append({'image_id': image_id, 'PredictionString': pred_str})
+
+    # Save predictions
+    submission_df = pandas.DataFrame(data=predictions)
+    submission_df.to_csv(output_file, index=False)
+    print(f"Submission saved to {output_file}, len={len(submission_df)}")
+
+test_predict(model, test_loader)
+
+
+
