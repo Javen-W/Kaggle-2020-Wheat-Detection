@@ -131,7 +131,19 @@ def test_predict(model, test_loader, output_file="submission.csv"):
     submission_df.to_csv(output_file, index=False)
     print(f"Submission saved to {output_file}, len={len(submission_df)}")
 
-test_predict(model, test_loader)
+def visualize_predictions(image, boxes, scores, threshold=0.5):
+    fig, ax = plt.subplots(1)
+    image = image.permute(1, 2, 0).numpy() * 255.0
+    ax.imshow(image.astype(np.uint8))
+    for box, score in zip(boxes, scores):
+        if score > threshold:
+            x_min, y_min, x_max, y_max = box
+            rect = patches.Rectangle((x_min, y_min), x_max - x_min, y_max - y_min, linewidth=1, edgecolor='r', facecolor='none')
+            ax.add_patch(rect)
+            ax.text(x_min, y_min, f'{score:.2f}', color='white', fontsize=8, backgroundcolor='red')
+    plt.show()
+
+test_predict(model, test_loader)  # output_file="/kaggle/working/submission.csv"
 
 
 
