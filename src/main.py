@@ -5,7 +5,11 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from src.dataset import WheatDataset
 from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_ResNet50_FPN_Weights
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
+import numpy as np
+import matplotlib as plt
+import matplotlib.patches as patches
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(777)
@@ -44,8 +48,11 @@ model_weights = "models/fasterrcnn_resnet50_fpn_COCO-V1.pt"
 model = fasterrcnn_resnet50_fpn(
     weights=FasterRCNN_ResNet50_FPN_Weights.COCO_V1,
     progress=True,
-    num_classes=2,  # 1 class (wheat) + background
 )
+in_features = model.roi_heads.box_predictor.cls_score.in_features
+model.roi_heads.box_predictor = FastRCNNPredictor(in_channels=in_features, num_classes=2) # 1 class (wheat) + background
+
+# Load custom weights if they exist
 if os.path.exists(model_weights):
     model.load_state_dict(torch.load(model_weights, weights_only=True))
 model.to(device)
