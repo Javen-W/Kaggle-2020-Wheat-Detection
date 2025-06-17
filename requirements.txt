@@ -5,6 +5,7 @@ matplotlib~=3.10.3
 tqdm~=4.67.1
 torchvision~=0.22.1
 torchmetrics~=1.7.3
+torchmetrics[detection]
 opencv-python~=4.11.0.86
 albumentations~=2.0.8
 scikit-learn~=1.6.1

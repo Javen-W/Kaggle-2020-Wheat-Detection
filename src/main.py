@@ -92,9 +92,9 @@ for epoch in range(n_epochs):
             outputs = model(images)
             preds = [
                 {
-                    'boxes': output['boxes'].cpu(),
-                    'scores': output['scores'].cpu(),
-                    'labels': output['labels'].cpu(),
+                    'boxes': output['boxes'],
+                    'scores': output['scores'],
+                    'labels': output['labels'],
                 } for output in outputs
             ]
             metric.update(preds, targets)
