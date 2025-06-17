@@ -71,6 +71,6 @@ class WheatDataset(Dataset):
 
         # Convert image to tensor
         image = image.astype(np.float32) / 255.0
-        image = torch.from_numpy(image).permute(2, 0, 1)  # Use permute instead of moveaxis
+        image = torch.from_numpy(image).permute(2, 0, 1)
 
         return image, target
